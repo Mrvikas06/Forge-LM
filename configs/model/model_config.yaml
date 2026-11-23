@@ -1,14 +1,18 @@
 # ForgeLM Model Configuration
-# This file will define the Transformer architecture hyperparameters.
-# Populated in Phase 2: Model Architecture.
+# Transformer architecture hyperparameters tuned for 6 GB VRAM.
 
-# --- Planned fields ---
+# --- Vocabulary & Embeddings ---
+vocab_size: 4096             # Trained BPE tokenizer vocabulary size
+d_model: 384                 # Embedding / hidden dimension
+n_heads: 6                   # Number of attention heads (d_head = 64)
+n_layers: 6                  # Number of Transformer blocks
+d_ff: 1536                   # Feed-forward inner dimension (4 * d_model)
+max_seq_len: 512             # Maximum sequence length
+dropout: 0.1                 # Dropout rate
+bias: false                  # Whether to use bias in linear layers (false matches LLaMA/modern GPT)
 
-# vocab_size: 32000          # Tokenizer vocabulary size
-# d_model: 512               # Embedding / hidden dimension
-# n_heads: 8                 # Number of attention heads
-# n_layers: 6                # Number of Transformer blocks
-# d_ff: 2048                 # Feed-forward inner dimension
-# max_seq_len: 512           # Maximum sequence length
-# dropout: 0.1               # Dropout rate
-# bias: false                # Whether to use bias in linear layers
+# --- Special Token IDs ---
+pad_token_id: 0
+bos_token_id: 1
+eos_token_id: 2
+unk_token_id: 3
