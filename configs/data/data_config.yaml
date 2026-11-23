@@ -1,12 +1,24 @@
 # ForgeLM Data Configuration
-# This file will define dataset sources and preprocessing settings.
-# Populated in Phase 1.5: Dataset Collection and Processing.
+# Dataset source and preprocessing settings.
 
-# --- Planned fields ---
+# --- Dataset ---
+dataset_name: "TinyStories"
+source: "kaggle:thedevastator/tinystories-narrative-classification"
 
-# dataset_name: ""           # Name or path of the dataset
-# max_samples: null          # Limit samples for debugging (null = use all)
-# seq_length: 512            # Sequence length for tokenized chunks
-# train_split: 0.9           # Fraction of data used for training
-# val_split: 0.1             # Fraction of data used for validation
-# num_workers: 2             # DataLoader worker processes
+# --- Raw data paths (relative to project root) ---
+raw_dir: "data/raw"
+processed_dir: "data/processed"
+tokenized_dir: "data/tokenized"
+
+# --- Processing ---
+max_samples: null              # Limit samples for debugging (null = use all)
+min_text_length: 20            # Minimum characters to keep a sample
+
+# --- Tokenization (Phase 2) ---
+# seq_length: 512              # Sequence length for tokenized chunks
+
+# --- DataLoader (Phase 3) ---
+# train_split: 0.9             # Fraction of data used for training
+# val_split: 0.1               # Fraction of data used for validation
+# num_workers: 2               # DataLoader worker processes
+# batch_size: 32               # Training batch size
