@@ -1,26 +1,24 @@
 # ForgeLM
 
-An educational GPT-style language model built entirely from random initialization. The goal is to understand and implement every component of the modern LLM pipeline -- from raw data to interactive text generation.
+An educational GPT-style language model built entirely from random initialization. The goal is to implement and understand every stage of the modern language model pipeline from first principles without relying on pretrained weights.
 
 ---
 
 ## Overview
 
-ForgeLM is a hands-on learning project that walks through building a small language model from scratch. No pretrained weights are used. Every piece of the pipeline is implemented, trained, and evaluated on consumer hardware.
-
-This project is not about achieving state-of-the-art results. It is about deeply understanding how language models work by building one yourself.
+ForgeLM implements a complete causal language model pipeline from scratch, prioritizing correctness, reproducibility, modular design, and execution within consumer GPU memory limits.
 
 ## Project Goals
 
-- Build a custom tokenizer from scratch (BPE or similar).
-- Implement Transformer components: attention, feed-forward layers, embeddings, normalization.
-- Train a language model from random initialization on a real dataset.
-- Understand training optimization: learning rate scheduling, gradient clipping, mixed precision.
-- Evaluate model performance with perplexity and loss tracking.
-- Implement autoregressive text generation with sampling strategies.
-- Explore instruction tuning and alignment techniques.
-- Develop a lightweight inference system with KV cache.
-- Serve the model through a FastAPI backend and interactive frontend.
+- Build a custom tokenizer from scratch (Byte-Pair Encoding).
+- Implement decoder-only Transformer components (causal self-attention, feed-forward layers, normalization, positional embeddings).
+- Train a language model from random initialization on a curated corpus.
+- Implement training optimization (learning rate scheduling, gradient accumulation, mixed precision).
+- Evaluate model quality using cross-entropy loss and perplexity.
+- Implement autoregressive text generation with temperature, top-k, and top-p sampling.
+- Implement KV caching for accelerated generation.
+- Explore instruction tuning and alignment.
+- Serve inference via a lightweight FastAPI backend and interactive frontend.
 
 ## Pipeline Architecture
 
@@ -29,148 +27,139 @@ Raw Dataset
   -> Data Processing
     -> Tokenizer
       -> Tokenized Dataset
-        -> Transformer Model
+        -> Transformer
           -> Pretraining
             -> Evaluation
-              -> Text Generation
+              -> Generation
                 -> Instruction Tuning
-                  -> Inference Engine
+                  -> Inference
 ```
 
-## Hardware
+## Hardware and Environment
 
-This project is developed and tested on:
+- Operating System: Windows 11
+- GPU: NVIDIA GeForce RTX 3050 (6 GB VRAM)
+- RAM: 32 GB
+- Python: 3.11+
+- Framework: PyTorch
 
-| Component | Specification |
-|---|---|
-| OS | Windows 11 |
-| GPU | NVIDIA RTX 3050 (6 GB VRAM) |
-| RAM | 32 GB |
-| Python | 3.11 |
-| Framework | PyTorch |
-
-All design decisions account for limited GPU memory. Mixed precision training, gradient accumulation, and efficient batching will be used to stay within the 6 GB VRAM budget.
+All architecture and training hyperparameters are tuned for execution within a 6 GB VRAM envelope using mixed precision and gradient accumulation.
 
 ## Project Status
 
-**Current phase: Foundation and Environment Setup**
+- **Phase 1: Project Foundation and Environment Setup** - Complete
+- **Phase 1.5: Dataset Collection and Preprocessing** - Complete (TinyStories corpus integrated)
+- **Phase 2: Custom Tokenizer & Transformer Architecture** - Next
 
-The project structure, development tooling, configuration system, and test infrastructure are in place. No model, tokenizer, or training code has been implemented yet.
+## Quickstart
 
-## Installation
-
-### 1. Clone the repository
+### 1. Clone and Create Virtual Environment
 
 ```powershell
-git clone https://github.com/Mrvikas06/ForgeLM.git
+git clone https://github.com/Mrvikas06/Forge-LM.git
 cd ForgeLM
-```
-
-### 2. Create a virtual environment
-
-```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-### 3. Install PyTorch with CUDA support
+### 2. Install PyTorch with CUDA Support
 
-Check your CUDA version and install the matching PyTorch build. For CUDA 12.1:
+Install the official CUDA-enabled PyTorch wheel matching your local driver (example for CUDA 12.1):
 
 ```powershell
 pip install torch --index-url https://download.pytorch.org/whl/cu121
 ```
 
-For other CUDA versions, see: https://pytorch.org/get-started/locally/
-
-### 4. Install remaining dependencies
+### 3. Install Dependencies and ForgeLM Package
 
 ```powershell
 pip install -r requirements.txt
-```
-
-### 5. Install ForgeLM as a local package
-
-```powershell
 pip install -e .
 ```
 
-### 6. Verify installation
-
-```powershell
-python -c "import forgelm; print(forgelm.__version__)"
-```
-
-## GPU Verification
-
-Run the GPU test script to confirm your CUDA setup:
+### 4. Verify GPU and Environment
 
 ```powershell
 python test_gpu.py
 ```
 
-This will report your GPU name, available memory, and run a basic compute test. If CUDA is not available, it will print instructions for installing a CUDA-compatible PyTorch build.
-
-## Running Tests
+### 5. Run Test Suite
 
 ```powershell
 pytest
 ```
 
+## Dataset Pipeline
+
+ForgeLM uses the **TinyStories** corpus (Microsoft Research), which provides a constrained English vocabulary suited for sub-30M parameter models trained on consumer hardware.
+
+### Prepare Processed Data
+
+```powershell
+# Process full dataset into clean text splits
+python scripts/prepare_data.py
+
+# Or process a small subset for rapid debugging
+python scripts/prepare_data.py --max-samples 10000
+```
+
+Raw data and processed text outputs are stored under `data/` and excluded from Git.
+
 ## Project Structure
 
 ```
 ForgeLM/
-├── configs/              # YAML configuration files
-│   ├── model/            #   Model architecture config
-│   ├── training/         #   Training hyperparameter config
-│   └── data/             #   Dataset config
-├── data/                 # Dataset storage (excluded from Git)
-│   ├── raw/
-│   ├── processed/
-│   └── tokenized/
-├── tokenizer/            # Custom tokenizer (Phase 2)
-├── model/                # Transformer implementation (Phase 2)
-├── training/             # Training engine (Phase 3)
-├── evaluation/           # Evaluation and metrics (Phase 4)
-├── inference/            # Generation and inference (Phase 5+)
-├── backend/              # FastAPI server (Phase 8)
-├── frontend/             # Web interface (Phase 9)
-├── experiments/          # Experiment tracking
-├── checkpoints/          # Saved model weights (excluded from Git)
-├── logs/                 # Training logs (excluded from Git)
-├── scripts/              # Utility scripts
-├── tests/                # Pytest test suite
-├── docs/                 # Documentation
-├── notebooks/            # Jupyter notebooks
-├── src/forgelm/          # Python package
-│   ├── config/           #   Configuration loading
-│   └── utils/            #   Device, seed, logging utilities
-├── test_gpu.py           # GPU verification script
-├── pyproject.toml        # Python packaging
-├── requirements.txt      # Dependencies
+├── configs/              # Declarative YAML configurations
+│   ├── data/             #   Dataset and preprocessing configuration
+│   ├── model/            #   Transformer architecture parameters
+│   └── training/         #   Optimization and training parameters
+├── data/                 # Data directory (ignored by git)
+│   ├── raw/              #   Raw downloaded files
+│   ├── processed/        #   Cleaned plain-text splits
+│   └── tokenized/        #   Pre-tokenized binary/tensor arrays
+├── tokenizer/            # Tokenizer training and serialization
+├── model/                # Transformer architecture implementation
+├── training/             # Pretraining engine and optimization loop
+├── evaluation/           # Evaluation metrics and perplexity benchmarks
+├── inference/            # Text generation engine and KV cache
+├── backend/              # FastAPI model server
+├── frontend/             # Interactive user interface
+├── experiments/          # Run logs and hyperparameter records
+├── checkpoints/          # Model weights (ignored by git)
+├── logs/                 # Training logs (ignored by git)
+├── scripts/              # Data processing and maintenance scripts
+├── tests/                # Automated pytest suite
+├── docs/                 # Project documentation
+├── notebooks/            # Exploratory analysis notebooks
+├── src/forgelm/          # Core Python package
+│   ├── config/           #   Configuration loader
+│   ├── data/             #   Text cleaning and data processing
+│   └── utils/            #   Device detection, seed, and logging
+├── test_gpu.py           # Hardware verification script
+├── pyproject.toml        # Package metadata and build definition
+├── requirements.txt      # Project dependencies
 ├── .gitignore
 ├── .env.example
 ├── LICENSE
 └── README.md
 ```
 
-## Roadmap
+## Development Roadmap
 
 | Phase | Description | Status |
 |---|---|---|
-| 1 | Project foundation and environment setup | Complete |
-| 1.5 | Dataset collection and preprocessing | Planned |
-| 2 | Tokenizer and model architecture | Planned |
-| 3 | Pretraining engine | Planned |
-| 4 | Evaluation system | Planned |
-| 5 | Text generation | Planned |
-| 6 | Instruction tuning | Planned |
-| 7 | Inference engine with KV cache | Planned |
-| 8 | FastAPI backend | Planned |
-| 9 | Interactive frontend | Planned |
-| 10 | Experiment tracking and analysis | Planned |
+| 1 | Project foundation, packaging, and testing setup | Complete |
+| 1.5 | Dataset collection and text preprocessing | Complete |
+| 2 | Byte-Pair Encoding (BPE) tokenizer from scratch | Next |
+| 2.5 | Decoder-only Transformer architecture | Planned |
+| 3 | Pretraining engine with mixed precision | Planned |
+| 4 | Evaluation metrics and validation benchmarks | Planned |
+| 5 | Autoregressive generation and sampling strategies | Planned |
+| 6 | KV cache inference optimization | Planned |
+| 7 | Instruction tuning and fine-tuning pipeline | Planned |
+| 8 | FastAPI backend service | Planned |
+| 9 | Interactive web frontend | Planned |
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+MIT License. See [LICENSE](LICENSE) for details.
