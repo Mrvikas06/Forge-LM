@@ -1,0 +1,12 @@
+# ForgeLM Data Configuration
+# This file will define dataset sources and preprocessing settings.
+# Populated in Phase 1.5: Dataset Collection and Processing.
+
+# --- Planned fields ---
+
+# dataset_name: ""           # Name or path of the dataset
+# max_samples: null          # Limit samples for debugging (null = use all)
+# seq_length: 512            # Sequence length for tokenized chunks
+# train_split: 0.9           # Fraction of data used for training
+# val_split: 0.1             # Fraction of data used for validation
+# num_workers: 2             # DataLoader worker processes

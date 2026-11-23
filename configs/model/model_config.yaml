@@ -1,0 +1,14 @@
+# ForgeLM Model Configuration
+# This file will define the Transformer architecture hyperparameters.
+# Populated in Phase 2: Model Architecture.
+
+# --- Planned fields ---
+
+# vocab_size: 32000          # Tokenizer vocabulary size
+# d_model: 512               # Embedding / hidden dimension
+# n_heads: 8                 # Number of attention heads
+# n_layers: 6                # Number of Transformer blocks
+# d_ff: 2048                 # Feed-forward inner dimension
+# max_seq_len: 512           # Maximum sequence length
+# dropout: 0.1               # Dropout rate
+# bias: false                # Whether to use bias in linear layers
