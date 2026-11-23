@@ -49,7 +49,8 @@ All architecture and training hyperparameters are tuned for execution within a 6
 
 - **Phase 1: Project Foundation and Environment Setup** - Complete
 - **Phase 1.5: Dataset Collection and Preprocessing** - Complete (TinyStories corpus integrated)
-- **Phase 2: Custom Tokenizer & Transformer Architecture** - Next
+- **Phase 2: Custom BPE Tokenizer** - Complete (4,096 vocab Byte-level BPE)
+- **Phase 2.5: Transformer Architecture** - Next
 
 ## Quickstart
 
@@ -150,8 +151,8 @@ ForgeLM/
 |---|---|---|
 | 1 | Project foundation, packaging, and testing setup | Complete |
 | 1.5 | Dataset collection and text preprocessing | Complete |
-| 2 | Byte-Pair Encoding (BPE) tokenizer from scratch | Next |
-| 2.5 | Decoder-only Transformer architecture | Planned |
+| 2 | Byte-Pair Encoding (BPE) tokenizer from scratch | Complete |
+| 2.5 | Decoder-only Transformer architecture | Next |
 | 3 | Pretraining engine with mixed precision | Planned |
 | 4 | Evaluation metrics and validation benchmarks | Planned |
 | 5 | Autoregressive generation and sampling strategies | Planned |
