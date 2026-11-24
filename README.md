@@ -53,7 +53,8 @@ All architecture and training hyperparameters are tuned for execution within a 6
 - **Phase 2.5: Transformer Architecture** - Complete (~12.5M param causal decoder)
 - **Phase 3: Pretraining Engine** - Complete (AMP, gradient accumulation, cosine warmup)
 - **Phase 4: Evaluation System** - Complete (Perplexity, Top-k accuracy, BPC benchmark)
-- **Phase 5: Text Generation** - Next
+- **Phase 5: Text Generation** - Complete (Streaming generation, top-k/top-p, repetition penalty)
+- **Phase 6: KV Cache Optimization** - Next
 
 ## Quickstart
 
@@ -158,7 +159,8 @@ ForgeLM/
 | 2.5 | Decoder-only Transformer architecture | Complete |
 | 3 | Pretraining engine with mixed precision | Complete |
 | 4 | Evaluation metrics and validation benchmarks | Complete |
-| 5 | Autoregressive generation and sampling strategies | Next |
+| 5 | Autoregressive generation and sampling strategies | Complete |
+| 6 | KV cache inference optimization | Next |
 | 6 | KV cache inference optimization | Planned |
 | 7 | Instruction tuning and fine-tuning pipeline | Planned |
 | 8 | FastAPI backend service | Planned |
