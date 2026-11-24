@@ -51,3 +51,33 @@ python scripts/train.py --batch-size 16 --max-steps 5000 --learning-rate 3e-4
 # Resume from checkpoint
 python scripts/train.py --resume checkpoints/checkpoint_step_1000.pt
 ```
+
+---
+
+## Supervised Fine-Tuning (SFT)
+
+Instruction tuning adapts a pretrained ForgeLM checkpoint into a conversational model using prompt-response pairs formatted with standardized role tags (`<|user|>` and `<|assistant|>`).
+
+### Loss Masking
+Cross-entropy loss is computed **exclusively** on the assistant's response tokens. The user instruction tokens and padding are masked using `ignore_index=0`, preventing the model from wasting gradient capacity memorizing user prompts.
+
+### Fine-Tuning Hyperparameters (`finetune_config.yaml`)
+
+| Parameter | Value | Description |
+|---|---|---|
+| `learning_rate` | 3.0e-5 | Reduced learning rate to prevent catastrophic forgetting |
+| `batch_size` | 8 | Micro-batch size |
+| `gradient_accumulation_steps` | 4 | Effective batch size = 32 |
+| `max_steps` | 1,000 | Total SFT optimization steps |
+| `warmup_steps` | 50 | Short warmup phase |
+| `weight_decay` | 0.01 | Moderate weight decay |
+
+### SFT CLI Usage
+
+```powershell
+# Launch fine-tuning with base model and instructions
+python scripts/finetune.py --base-checkpoint checkpoints/best_model.pt --instruction-data data/instructions.json
+
+# Interactive chat with fine-tuned model
+python scripts/chat.py --checkpoint checkpoints/finetuned/finetuned_model.pt
+```

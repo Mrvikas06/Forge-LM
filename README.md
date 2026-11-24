@@ -55,7 +55,8 @@ All architecture and training hyperparameters are tuned for execution within a 6
 - **Phase 4: Evaluation System** - Complete (Perplexity, Top-k accuracy, BPC benchmark)
 - **Phase 5: Text Generation** - Complete (Streaming generation, top-k/top-p, repetition penalty)
 - **Phase 6: KV Cache Optimization** - Complete (O(N) incremental decoding)
-- **Phase 7: Instruction Tuning** - Next
+- **Phase 7: Instruction Tuning** - Complete (SFT pipeline, prompt-loss masking, interactive chat)
+- **Phase 8: Backend Service** - Next (FastAPI inference engine with SSE streaming)
 
 ## Quickstart
 
