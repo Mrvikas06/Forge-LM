@@ -51,7 +51,8 @@ All architecture and training hyperparameters are tuned for execution within a 6
 - **Phase 1.5: Dataset Collection and Preprocessing** - Complete (TinyStories corpus integrated)
 - **Phase 2: Custom BPE Tokenizer** - Complete (4,096 vocab Byte-level BPE)
 - **Phase 2.5: Transformer Architecture** - Complete (~12.5M param causal decoder)
-- **Phase 3: Pretraining Engine** - Next
+- **Phase 3: Pretraining Engine** - Complete (AMP, gradient accumulation, cosine warmup)
+- **Phase 4: Evaluation System** - Next
 
 ## Quickstart
 
@@ -154,8 +155,8 @@ ForgeLM/
 | 1.5 | Dataset collection and text preprocessing | Complete |
 | 2 | Byte-Pair Encoding (BPE) tokenizer from scratch | Complete |
 | 2.5 | Decoder-only Transformer architecture | Complete |
-| 3 | Pretraining engine with mixed precision | Next |
-| 4 | Evaluation metrics and validation benchmarks | Planned |
+| 3 | Pretraining engine with mixed precision | Complete |
+| 4 | Evaluation metrics and validation benchmarks | Next |
 | 5 | Autoregressive generation and sampling strategies | Planned |
 | 6 | KV cache inference optimization | Planned |
 | 7 | Instruction tuning and fine-tuning pipeline | Planned |
