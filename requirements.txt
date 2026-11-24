@@ -8,5 +8,10 @@ pyyaml>=6.0
 # Development and testing
 pytest>=7.3.0
 
+# Web and serving
+fastapi>=0.100.0
+uvicorn[standard]>=0.20.0
+pydantic>=2.0.0
+
 # Experiment tracking
 tensorboard>=2.13.0
