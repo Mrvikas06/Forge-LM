@@ -1,9 +1,10 @@
-"""Complete ForgeLM Transformer causal language model."""
+"""Complete ForgeLM Transformer causal language model with KV cache support."""
 
 from __future__ import annotations
 
 import math
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import torch
 import torch.nn as nn
@@ -11,6 +12,9 @@ import torch.nn.functional as F
 
 from forgelm.model.block import TransformerBlock
 from forgelm.model.config import ModelConfig
+
+if TYPE_CHECKING:
+    from forgelm.inference.kv_cache import KVCache
 
 
 class ForgeTransformer(nn.Module):
@@ -22,6 +26,7 @@ class ForgeTransformer(nn.Module):
         - Final LayerNorm and linear language model head
         - Weight tying between token embeddings and LM head
         - Special weight initialization for stable training
+        - Key-Value (KV) Cache support for accelerated generation
     """
 
     def __init__(self, config: ModelConfig) -> None:
@@ -82,12 +87,16 @@ class ForgeTransformer(nn.Module):
         self,
         idx: torch.Tensor,
         targets: torch.Tensor | None = None,
+        kv_cache: KVCache | None = None,
+        start_pos: int = 0,
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
-        """Forward pass for causal language model.
+        """Forward pass for causal language model with optional KV cache.
 
         Args:
             idx: Tensor of token IDs of shape (batch_size, seq_len).
             targets: Optional tensor of target token IDs of shape (batch_size, seq_len).
+            kv_cache: Optional KVCache instance storing past keys/values.
+            start_pos: Starting position index for learned positional embeddings.
 
         Returns:
             Tuple of (logits, loss). Loss is None if targets is not provided.
@@ -96,22 +105,22 @@ class ForgeTransformer(nn.Module):
         device = idx.device
         b, t = idx.size()
 
-        if t > self.config.max_seq_len:
+        if start_pos + t > self.config.max_seq_len:
             raise ValueError(
-                f"Cannot forward sequence of length {t}, max sequence length is {self.config.max_seq_len}"
+                f"Position {start_pos + t} exceeds maximum context length {self.config.max_seq_len}"
             )
 
-        # Position indices: [0, 1, 2, ..., t-1]
-        pos = torch.arange(0, t, dtype=torch.long, device=device)
+        # Position indices: [start_pos, start_pos + 1, ..., start_pos + t - 1]
+        pos = torch.arange(start_pos, start_pos + t, dtype=torch.long, device=device)
 
         # Forward embeddings: token + position
         tok_emb = self.transformer["wte"](idx)  # (B, T, d_model)
         pos_emb = self.transformer["wpe"](pos)  # (T, d_model)
         x = self.transformer["drop"](tok_emb + pos_emb)
 
-        # Forward through Transformer blocks
-        for block in self.transformer["h"]:
-            x = block(x)
+        # Forward through Transformer blocks with layer-wise cache integration
+        for i, block in enumerate(self.transformer["h"]):
+            x = block(x, kv_cache=kv_cache, layer_idx=i)
 
         # Final LayerNorm
         x = self.transformer["ln_f"](x)
@@ -122,7 +131,6 @@ class ForgeTransformer(nn.Module):
         # Compute cross-entropy loss if training targets provided
         loss = None
         if targets is not None:
-            # Flatten predictions and targets for cross-entropy
             loss = F.cross_entropy(
                 logits.view(-1, logits.size(-1)),
                 targets.view(-1),
@@ -133,13 +141,6 @@ class ForgeTransformer(nn.Module):
 
     @classmethod
     def from_config_file(cls, config_path: str | Path) -> ForgeTransformer:
-        """Instantiate model directly from a YAML config file.
-
-        Args:
-            config_path: Path to model_config.yaml.
-
-        Returns:
-            Instantiated ForgeTransformer.
-        """
+        """Instantiate model directly from a YAML config file."""
         config = ModelConfig.from_yaml(config_path)
         return cls(config)
