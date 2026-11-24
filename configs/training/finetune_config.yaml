@@ -1,0 +1,24 @@
+# ForgeLM Instruction Fine-Tuning (SFT) Configuration
+# Hyperparameters tuned for adapting pretrained checkpoints to instruction following.
+
+# --- Batching & Optimization ---
+batch_size: 8                     # Micro-batch size per forward pass
+gradient_accumulation_steps: 4    # Effective batch size = 8 * 4 = 32
+learning_rate: 3.0e-5             # Lower learning rate to preserve pretrained weights
+min_lr_ratio: 0.1                 # Minimum learning rate (3.0e-6)
+weight_decay: 0.01                # Reduced weight decay for fine-tuning
+grad_clip: 1.0                    # Gradient clipping threshold
+
+# --- Schedule ---
+max_steps: 1000                   # SFT requires significantly fewer steps than pretraining
+warmup_steps: 50                  # Short warmup phase
+
+# --- Evaluation & Checkpoints ---
+eval_interval: 100                # Evaluation frequency (in steps)
+eval_steps: 25                    # Batches per evaluation
+checkpoint_interval: 250          # Checkpoint save frequency
+checkpoint_dir: "checkpoints"     # Checkpoint save directory
+
+# --- Hardware & Performance ---
+mixed_precision: true             # Automatic Mixed Precision (AMP fp16) for 6GB VRAM
+device: "auto"                    # 'auto', 'cuda', or 'cpu'
