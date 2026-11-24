@@ -52,7 +52,8 @@ All architecture and training hyperparameters are tuned for execution within a 6
 - **Phase 2: Custom BPE Tokenizer** - Complete (4,096 vocab Byte-level BPE)
 - **Phase 2.5: Transformer Architecture** - Complete (~12.5M param causal decoder)
 - **Phase 3: Pretraining Engine** - Complete (AMP, gradient accumulation, cosine warmup)
-- **Phase 4: Evaluation System** - Next
+- **Phase 4: Evaluation System** - Complete (Perplexity, Top-k accuracy, BPC benchmark)
+- **Phase 5: Text Generation** - Next
 
 ## Quickstart
 
@@ -156,8 +157,8 @@ ForgeLM/
 | 2 | Byte-Pair Encoding (BPE) tokenizer from scratch | Complete |
 | 2.5 | Decoder-only Transformer architecture | Complete |
 | 3 | Pretraining engine with mixed precision | Complete |
-| 4 | Evaluation metrics and validation benchmarks | Next |
-| 5 | Autoregressive generation and sampling strategies | Planned |
+| 4 | Evaluation metrics and validation benchmarks | Complete |
+| 5 | Autoregressive generation and sampling strategies | Next |
 | 6 | KV cache inference optimization | Planned |
 | 7 | Instruction tuning and fine-tuning pipeline | Planned |
 | 8 | FastAPI backend service | Planned |
