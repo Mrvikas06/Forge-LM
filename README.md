@@ -54,7 +54,8 @@ All architecture and training hyperparameters are tuned for execution within a 6
 - **Phase 3: Pretraining Engine** - Complete (AMP, gradient accumulation, cosine warmup)
 - **Phase 4: Evaluation System** - Complete (Perplexity, Top-k accuracy, BPC benchmark)
 - **Phase 5: Text Generation** - Complete (Streaming generation, top-k/top-p, repetition penalty)
-- **Phase 6: KV Cache Optimization** - Next
+- **Phase 6: KV Cache Optimization** - Complete (O(N) incremental decoding)
+- **Phase 7: Instruction Tuning** - Next
 
 ## Quickstart
 
@@ -160,9 +161,8 @@ ForgeLM/
 | 3 | Pretraining engine with mixed precision | Complete |
 | 4 | Evaluation metrics and validation benchmarks | Complete |
 | 5 | Autoregressive generation and sampling strategies | Complete |
-| 6 | KV cache inference optimization | Next |
-| 6 | KV cache inference optimization | Planned |
-| 7 | Instruction tuning and fine-tuning pipeline | Planned |
+| 6 | KV cache inference optimization | Complete |
+| 7 | Instruction tuning and fine-tuning pipeline | Next |
 | 8 | FastAPI backend service | Planned |
 | 9 | Interactive web frontend | Planned |
 
