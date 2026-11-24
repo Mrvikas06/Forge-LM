@@ -1,4 +1,4 @@
-"""Autoregressive text generation engine for ForgeLM."""
+"""Autoregressive text generation engine for ForgeLM with KV Cache acceleration."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from typing import Iterator, Sequence
 import torch
 import torch.nn as nn
 
+from forgelm.inference.kv_cache import KVCache
 from forgelm.inference.sampling import sample_next_token
 from forgelm.tokenizer.bpe import BPETokenizer
 from forgelm.utils.logging import get_logger
@@ -15,10 +16,9 @@ logger = get_logger(__name__)
 
 
 class TextGenerator:
-    """Autoregressive text generator with sampling and streaming support.
+    """Autoregressive text generator with sampling and KV cache acceleration.
 
-    Handles prompt encoding, context window management, token sampling,
-    and decoding back to human-readable text.
+    Supports both cached (O(N) incremental) and uncached (O(N^2) full-sequence) decoding.
     """
 
     def __init__(
@@ -61,6 +61,7 @@ class TextGenerator:
         top_p: float = 0.9,
         repetition_penalty: float = 1.1,
         stop_tokens: Sequence[int] | None = None,
+        use_cache: bool = True,
     ) -> str:
         """Generate text completion from a prompt string.
 
@@ -72,6 +73,7 @@ class TextGenerator:
             top_p: Nucleus cumulative probability threshold.
             repetition_penalty: Penalty for repeating prior tokens.
             stop_tokens: Optional token IDs that trigger early stopping.
+            use_cache: Whether to use KVCache for accelerated generation.
 
         Returns:
             Generated text string including the prompt.
@@ -85,6 +87,7 @@ class TextGenerator:
             top_p=top_p,
             repetition_penalty=repetition_penalty,
             stop_tokens=stop_tokens,
+            use_cache=use_cache,
         ):
             chunks.append(token_text)
 
@@ -100,6 +103,7 @@ class TextGenerator:
         top_p: float = 0.9,
         repetition_penalty: float = 1.1,
         stop_tokens: Sequence[int] | None = None,
+        use_cache: bool = True,
     ) -> Iterator[str]:
         """Yield generated text tokens one by one as they are produced.
 
@@ -111,6 +115,7 @@ class TextGenerator:
             top_p: Nucleus sampling.
             repetition_penalty: Penalty on previously generated tokens.
             stop_tokens: Extra stop token IDs.
+            use_cache: Whether to use KV cache for acceleration.
 
         Yields:
             Decoded text strings for each new token.
@@ -124,17 +129,32 @@ class TextGenerator:
             stops.update(stop_tokens)
 
         generated_ids: list[int] = []
+        cache = KVCache() if use_cache else None
 
-        for _ in range(max_new_tokens):
-            # Crop to context window if input length exceeds max_seq_len
-            if tokens_tensor.size(1) > self.max_seq_len:
-                tokens_cond = tokens_tensor[:, -self.max_seq_len :]
+        # Prefill phase (processes initial prompt tokens)
+        if use_cache:
+            logits, _ = self.model(tokens_tensor, kv_cache=cache, start_pos=0)
+            next_token_logits = logits[:, -1, :]
+        else:
+            next_token_logits = None
+
+        for step in range(max_new_tokens):
+            if not use_cache or step == 0:
+                if not use_cache:
+                    # Uncached: Crop context window if sequence exceeds max_seq_len
+                    if tokens_tensor.size(1) > self.max_seq_len:
+                        tokens_cond = tokens_tensor[:, -self.max_seq_len :]
+                    else:
+                        tokens_cond = tokens_tensor
+
+                    logits, _ = self.model(tokens_cond)
+                    next_token_logits = logits[:, -1, :]
             else:
-                tokens_cond = tokens_tensor
-
-            # Forward pass: get logits for last position
-            logits, _ = self.model(tokens_cond)
-            next_token_logits = logits[:, -1, :]  # (1, vocab_size)
+                # Cached: Forward ONLY the single newest token
+                current_pos = tokens_tensor.size(1) - 1
+                newest_token = tokens_tensor[:, -1:]
+                logits, _ = self.model(newest_token, kv_cache=cache, start_pos=current_pos)
+                next_token_logits = logits[:, -1, :]
 
             # Sample next token
             next_token = sample_next_token(
@@ -148,13 +168,13 @@ class TextGenerator:
 
             token_id = next_token.item()
 
-            # Check for EOS or custom stop token
+            # Early stopping on EOS or custom stop token
             if token_id in stops:
                 break
 
             generated_ids.append(token_id)
             tokens_tensor = torch.cat([tokens_tensor, next_token], dim=1)
 
-            # Decode single token text and yield
+            # Yield decoded token text
             decoded_chunk = self.tokenizer.decode([token_id], skip_special_tokens=True)
             yield decoded_chunk
