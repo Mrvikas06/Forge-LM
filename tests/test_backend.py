@@ -24,6 +24,26 @@ def test_root_endpoint(client):
     data = response.json()
     assert "ForgeLM" in data["service"]
     assert "version" in data
+    assert "ui_url" in data
+
+
+def test_frontend_serving(client):
+    """Test integrated frontend HTML, CSS, and JS serving."""
+    # Test HTML app endpoint
+    html_res = client.get("/app")
+    assert html_res.status_code == 200
+    assert "text/html" in html_res.headers["content-type"]
+    assert "ForgeLM" in html_res.text
+
+    # Test CSS endpoint
+    css_res = client.get("/app/style.css")
+    assert css_res.status_code == 200
+    assert "text/css" in css_res.headers["content-type"]
+
+    # Test JS endpoint
+    js_res = client.get("/app/app.js")
+    assert js_res.status_code == 200
+    assert "application/javascript" in js_res.headers["content-type"]
 
 
 def test_health_endpoint(client):

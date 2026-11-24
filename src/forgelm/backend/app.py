@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import json
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncIterator
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 
 from forgelm.backend.schemas import (
     ChatRequest,
@@ -51,6 +52,9 @@ app.add_middleware(
 )
 
 
+FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent.parent / "frontend"
+
+
 @app.get("/", tags=["Info"])
 def root() -> dict[str, str]:
     """Root metadata endpoint."""
@@ -59,7 +63,38 @@ def root() -> dict[str, str]:
         "version": "1.0.0",
         "docs_url": "/docs",
         "health_url": "/health",
+        "ui_url": "/app",
     }
+
+
+@app.get("/app", response_class=HTMLResponse, tags=["UI"])
+def serve_frontend_app() -> HTMLResponse:
+    """Serve interactive web frontend."""
+    index_file = FRONTEND_DIR / "index.html"
+    if not index_file.exists():
+        raise HTTPException(status_code=404, detail="Frontend assets not found")
+    content = index_file.read_text(encoding="utf-8")
+    content = content.replace('href="style.css"', 'href="/app/style.css"')
+    content = content.replace('src="app.js"', 'src="/app/app.js"')
+    return HTMLResponse(content=content)
+
+
+@app.get("/app/style.css", tags=["UI"])
+def serve_frontend_css() -> Response:
+    """Serve frontend stylesheet."""
+    css_file = FRONTEND_DIR / "style.css"
+    if not css_file.exists():
+        raise HTTPException(status_code=404, detail="CSS stylesheet not found")
+    return Response(content=css_file.read_text(encoding="utf-8"), media_type="text/css")
+
+
+@app.get("/app/app.js", tags=["UI"])
+def serve_frontend_js() -> Response:
+    """Serve frontend JavaScript application."""
+    js_file = FRONTEND_DIR / "app.js"
+    if not js_file.exists():
+        raise HTTPException(status_code=404, detail="JavaScript asset not found")
+    return Response(content=js_file.read_text(encoding="utf-8"), media_type="application/javascript")
 
 
 @app.get("/health", response_model=HealthResponse, tags=["Monitoring"])

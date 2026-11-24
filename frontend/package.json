@@ -1,0 +1,11 @@
+{
+  "name": "forgelm-frontend",
+  "version": "1.0.0",
+  "description": "Interactive Web UI for ForgeLM inference and chat",
+  "scripts": {
+    "start": "npx serve -l 3000 ."
+  },
+  "keywords": ["forgelm", "llm", "transformer", "chat-ui"],
+  "author": "Mrvikas06 <vikaskrsingh2106@gmail.com>",
+  "license": "MIT"
+}
