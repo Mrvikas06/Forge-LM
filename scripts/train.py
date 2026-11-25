@@ -77,6 +77,18 @@ def main() -> None:
         help="Override peak learning rate",
     )
     parser.add_argument(
+        "--grad-accum",
+        type=int,
+        default=None,
+        help="Override gradient accumulation steps",
+    )
+    parser.add_argument(
+        "--seq-len",
+        type=int,
+        default=None,
+        help="Override maximum sequence length",
+    )
+    parser.add_argument(
         "--device",
         type=str,
         default=None,
@@ -118,8 +130,12 @@ def main() -> None:
         train_config.max_steps = args.max_steps
     if args.batch_size is not None:
         train_config.batch_size = args.batch_size
+    if args.grad_accum is not None:
+        train_config.gradient_accumulation_steps = args.grad_accum
     if args.learning_rate is not None:
         train_config.learning_rate = args.learning_rate
+    if args.seq_len is not None:
+        model_config.max_seq_len = args.seq_len
     if args.device is not None:
         train_config.device = args.device
 
