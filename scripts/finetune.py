@@ -102,6 +102,18 @@ def main() -> None:
         help="Override fine-tuning learning rate",
     )
     parser.add_argument(
+        "--grad-accum",
+        type=int,
+        default=None,
+        help="Override gradient accumulation steps",
+    )
+    parser.add_argument(
+        "--max-seq-len",
+        type=int,
+        default=128,
+        help="Maximum sequence length for instruction pairs (default: 128)",
+    )
+    parser.add_argument(
         "--device",
         type=str,
         default=None,
@@ -149,6 +161,8 @@ def main() -> None:
         finetune_config.batch_size = args.batch_size
     if args.learning_rate is not None:
         finetune_config.learning_rate = args.learning_rate
+    if args.grad_accum is not None:
+        finetune_config.gradient_accumulation_steps = args.grad_accum
     if args.device is not None:
         finetune_config.device = args.device
 
@@ -162,10 +176,10 @@ def main() -> None:
     train_dataset = InstructionDataset(
         data=instruction_path,
         tokenizer=tokenizer,
-        max_seq_len=512,
+        max_seq_len=args.max_seq_len,
         pad_token_id=tokenizer.pad_id,
     )
-    logger.info(f"Training dataset size: {len(train_dataset)} examples")
+    logger.info(f"Training dataset size: {len(train_dataset)} examples (max_seq_len={args.max_seq_len})")
 
     val_dataset = None
     if args.val_data and Path(args.val_data).exists():
@@ -173,7 +187,7 @@ def main() -> None:
         val_dataset = InstructionDataset(
             data=args.val_data,
             tokenizer=tokenizer,
-            max_seq_len=512,
+            max_seq_len=args.max_seq_len,
             pad_token_id=tokenizer.pad_id,
         )
 
