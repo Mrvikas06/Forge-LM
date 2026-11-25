@@ -57,12 +57,13 @@
         <div class="quick-prompts-bar">
           <span class="prompt-hint">Try asking:</span>
           <div class="prompt-chips">
+            <button class="chip" onclick="applyQuickPrompt('Hello!')">👋 Say Hello</button>
+            <button class="chip" onclick="applyQuickPrompt('Who are you?')">⚡ Who Are You?</button>
+            <button class="chip" onclick="applyQuickPrompt('How are you doing?')">😊 How Are You?</button>
             <button class="chip" onclick="applyQuickPrompt('Tell me a story about a little dog who lost his ball.')">🐶 Dog's Lost Ball</button>
             <button class="chip" onclick="applyQuickPrompt('Write a bedtime story about a little car named Beep.')">🚗 Beep the Car</button>
-            <button class="chip" onclick="applyQuickPrompt('Tell me a story about a little cherry tree.')">🍒 Cherry Tree</button>
             <button class="chip" onclick="applyQuickPrompt('What makes a rainbow appear in the sky?')">🌈 Rainbows</button>
             <button class="chip" onclick="applyQuickPrompt('Explain why trees lose their leaves in autumn in simple words.')">🍁 Autumn Leaves</button>
-            <button class="chip" onclick="applyQuickPrompt('Write a short story about sharing toys with friends.')">🧸 Sharing Toys</button>
           </div>
         </div>
 
@@ -85,7 +86,7 @@
         <!-- Chat Input Bar -->
         <div class="chat-input-bar">
           <div class="input-container">
-            <textarea id="chat-input" placeholder="Type a story prompt or question (e.g. 'Tell me a story about a playful kitten')..." rows="1" onkeydown="handleChatKeyDown(event)"></textarea>
+            <textarea id="chat-input" placeholder="Say 'Hello', ask a question, or request a story (e.g. 'Hi!', 'Who are you?')..." rows="1" onkeydown="handleChatKeyDown(event)"></textarea>
             <button id="chat-send-btn" class="send-btn" onclick="sendChatMessage()" title="Send prompt (Enter)">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             </button>
