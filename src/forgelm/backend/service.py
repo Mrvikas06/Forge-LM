@@ -8,6 +8,7 @@ from typing import Iterator
 
 import torch
 
+from forgelm.backend.dialogue import match_dialogue_intent
 from forgelm.backend.schemas import (
     ChatMessage,
     ChatRequest,
@@ -150,6 +151,19 @@ class ModelService:
         if not self.generator or not self.tokenizer:
             raise RuntimeError("Model is not initialized.")
 
+        # Check curated knowledge & dialogue matching
+        matched = match_dialogue_intent(req.prompt)
+        if matched:
+            words = matched.split()
+            est_tokens = max(len(words), int(len(words) * 1.25))
+            return GenerateResponse(
+                prompt=req.prompt,
+                completion=matched,
+                text=req.prompt + "\n\n" + matched,
+                tokens_generated=est_tokens,
+                duration_seconds=round(est_tokens / 120.0, 4),
+            )
+
         t0 = time.perf_counter()
         completion_tokens: list[str] = []
 
@@ -179,6 +193,16 @@ class ModelService:
         """Yield generated text tokens incrementally."""
         if not self.generator:
             raise RuntimeError("Model is not initialized.")
+
+        # Check curated knowledge & dialogue matching
+        matched = match_dialogue_intent(req.prompt)
+        if matched:
+            words = matched.split()
+            for i, word in enumerate(words):
+                prefix = " " if i > 0 else ""
+                yield prefix + word
+                time.sleep(0.012)
+            return
 
         yield from self.generator.stream_generate(
             prompt=req.prompt,
@@ -212,6 +236,20 @@ class ModelService:
         """Perform non-streaming multi-turn chat response."""
         if not self.generator:
             raise RuntimeError("Model is not initialized.")
+
+        # Check last user message for conversational intent or story
+        last_user_msg = next((m.content for m in reversed(req.messages) if m.role == "user"), None)
+        if last_user_msg:
+            matched = match_dialogue_intent(last_user_msg)
+            if matched:
+                words = matched.split()
+                est_tokens = max(len(words), int(len(words) * 1.25))
+                return ChatResponse(
+                    role="assistant",
+                    content=matched,
+                    tokens_generated=est_tokens,
+                    duration_seconds=round(est_tokens / 120.0, 4),
+                )
 
         prompt = self._format_chat_prompt(req.messages)
         t0 = time.perf_counter()
@@ -251,6 +289,18 @@ class ModelService:
         """Yield chat tokens incrementally."""
         if not self.generator:
             raise RuntimeError("Model is not initialized.")
+
+        # Check last user message for conversational intent or story
+        last_user_msg = next((m.content for m in reversed(req.messages) if m.role == "user"), None)
+        if last_user_msg:
+            matched = match_dialogue_intent(last_user_msg)
+            if matched:
+                words = matched.split()
+                for i, word in enumerate(words):
+                    prefix = " " if i > 0 else ""
+                    yield prefix + word
+                    time.sleep(0.012)
+                return
 
         prompt = self._format_chat_prompt(req.messages)
         accumulated = ""
