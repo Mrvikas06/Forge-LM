@@ -216,6 +216,7 @@ class ModelService:
         prompt = self._format_chat_prompt(req.messages)
         t0 = time.perf_counter()
         resp_tokens: list[str] = []
+        accumulated = ""
 
         for token in self.generator.stream_generate(
             prompt=prompt,
@@ -226,12 +227,18 @@ class ModelService:
             repetition_penalty=req.repetition_penalty,
             use_cache=req.use_cache,
         ):
-            if USER_TAG in token:
+            accumulated += token
+            if USER_TAG in accumulated or ASSISTANT_TAG in accumulated:
+                break
+            if "<|" in token:
                 break
             resp_tokens.append(token)
 
         duration = time.perf_counter() - t0
         content = "".join(resp_tokens).strip()
+        # Clean any trailing partial tag
+        if "<|" in content:
+            content = content.split("<|")[0].strip()
 
         return ChatResponse(
             role="assistant",
@@ -246,6 +253,7 @@ class ModelService:
             raise RuntimeError("Model is not initialized.")
 
         prompt = self._format_chat_prompt(req.messages)
+        accumulated = ""
         for token in self.generator.stream_generate(
             prompt=prompt,
             max_new_tokens=req.max_tokens,
@@ -255,7 +263,10 @@ class ModelService:
             repetition_penalty=req.repetition_penalty,
             use_cache=req.use_cache,
         ):
-            if USER_TAG in token:
+            accumulated += token
+            if USER_TAG in accumulated or ASSISTANT_TAG in accumulated:
+                break
+            if "<|" in token:
                 break
             yield token
 
