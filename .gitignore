@@ -35,7 +35,9 @@ data/processed/*
 data/tokenized/*
 checkpoints/*
 logs/*
-experiments/*
+experiments/runs/*
+experiments/plots/*
+experiments/reports/*
 
 # Keep directory structure via README files
 !data/raw/.gitkeep
@@ -44,6 +46,7 @@ experiments/*
 !checkpoints/.gitkeep
 !logs/.gitkeep
 !experiments/.gitkeep
+!experiments/README.md
 
 # Jupyter
 .ipynb_checkpoints/
