@@ -3,89 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ForgeLM | Neural Playground</title>
+  <title>ForgeLM | Next-Gen Neural Studio</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="dark-theme">
   <!-- Top Navigation Header -->
   <header class="app-header">
-    <div class="logo-group">
-      <div class="logo-icon">⚡</div>
-      <div class="logo-text">
-        <h1>ForgeLM</h1>
-        <span class="badge">12.5M Params</span>
+    <div class="header-left">
+      <div class="logo-group">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">
+          <h1>ForgeLM <span class="version-tag">v2.0</span></h1>
+          <span class="badge pulse-badge">12.5M Causal Decoder</span>
+        </div>
       </div>
+
+      <!-- Mode Selector Tabs -->
+      <nav class="mode-tabs">
+        <button id="tab-chat" class="tab-btn active" onclick="switchMode('chat')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          Chat Studio
+        </button>
+        <button id="tab-playground" class="tab-btn" onclick="switchMode('playground')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+          Raw Playground
+        </button>
+      </nav>
     </div>
 
-    <!-- Mode Selector Tabs -->
-    <div class="mode-tabs">
-      <button id="tab-chat" class="tab-btn active" onclick="switchMode('chat')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Chat Mode
+    <!-- Header Actions & Telemetry Status -->
+    <div class="header-right">
+      <div class="server-status" id="server-status" title="API Connectivity Status">
+        <span class="status-dot offline" id="status-dot"></span>
+        <span class="status-label" id="status-label">Connecting...</span>
+      </div>
+      <button class="icon-btn" onclick="clearActiveSession()" title="Reset Session">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
       </button>
-      <button id="tab-playground" class="tab-btn" onclick="switchMode('playground')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
-        Playground Mode
-      </button>
-    </div>
-
-    <!-- Server Status Indicator -->
-    <div class="server-status" id="server-status">
-      <span class="status-dot offline" id="status-dot"></span>
-      <span class="status-label" id="status-label">Connecting...</span>
     </div>
   </header>
 
-  <!-- Main Container -->
+  <!-- Main Split Layout -->
   <div class="app-layout">
-    <!-- Center Content Area -->
+    <!-- Center Interactive Workspace -->
     <main class="main-content">
       
-      <!-- VIEW 1: Chat Mode View -->
+      <!-- VIEW 1: Chat Studio View -->
       <section id="view-chat" class="view-panel active">
+        <!-- Quick Starter Pills Bar -->
+        <div class="quick-prompts-bar">
+          <span class="prompt-hint">Try asking:</span>
+          <div class="prompt-chips">
+            <button class="chip" onclick="applyQuickPrompt('Tell me a story about a little dog who lost his ball.')">🐶 Dog's Lost Ball</button>
+            <button class="chip" onclick="applyQuickPrompt('Write a bedtime story about a little car named Beep.')">🚗 Beep the Car</button>
+            <button class="chip" onclick="applyQuickPrompt('Tell me a story about a little cherry tree.')">🍒 Cherry Tree</button>
+            <button class="chip" onclick="applyQuickPrompt('What makes a rainbow appear in the sky?')">🌈 Rainbows</button>
+            <button class="chip" onclick="applyQuickPrompt('Explain why trees lose their leaves in autumn in simple words.')">🍁 Autumn Leaves</button>
+            <button class="chip" onclick="applyQuickPrompt('Write a short story about sharing toys with friends.')">🧸 Sharing Toys</button>
+          </div>
+        </div>
+
+        <!-- Chat Conversation Thread -->
         <div class="chat-thread" id="chat-thread">
           <div class="message assistant welcome-card">
-            <div class="message-header">
-              <span class="sender-name">ForgeLM</span>
-              <span class="msg-time">Ready</span>
-            </div>
-            <div class="message-body">
-              Hello! I am <strong>ForgeLM</strong>, an educational causal transformer trained from scratch. You can ask me stories, explanations, or prompts. How can I help you today?
+            <div class="message-avatar">⚡</div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="sender-name">ForgeLM</span>
+                <span class="msg-time">Trained Model Ready</span>
+              </div>
+              <div class="message-body">
+                Welcome to <strong>ForgeLM</strong>! I am an educational causal language model built and trained entirely from scratch. Select one of the starter prompts above or ask me any question!
+              </div>
             </div>
           </div>
         </div>
 
+        <!-- Chat Input Bar -->
         <div class="chat-input-bar">
-          <textarea id="chat-input" placeholder="Type an instruction (e.g. 'Tell a story about a brave little rabbit')..." rows="1" onkeydown="handleChatKeyDown(event)"></textarea>
-          <button id="chat-send-btn" class="send-btn" onclick="sendChatMessage()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-            Send
-          </button>
+          <div class="input-container">
+            <textarea id="chat-input" placeholder="Type a story prompt or question (e.g. 'Tell me a story about a playful kitten')..." rows="1" onkeydown="handleChatKeyDown(event)"></textarea>
+            <button id="chat-send-btn" class="send-btn" onclick="sendChatMessage()" title="Send prompt (Enter)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+          </div>
         </div>
       </section>
 
-      <!-- VIEW 2: Playground Mode View -->
+      <!-- VIEW 2: Raw Playground View -->
       <section id="view-playground" class="view-panel">
         <div class="playground-editor">
           <div class="editor-header">
-            <span>Prompt & Autoregressive Continuation</span>
+            <div class="editor-title">
+              <span>Autoregressive Prompt Continuation</span>
+            </div>
             <div class="presets-dropdown">
-              <label for="prompt-preset">Preset:</label>
+              <label for="prompt-preset">Story Presets:</label>
               <select id="prompt-preset" onchange="applyPreset(this.value)">
-                <option value="">Select a prompt preset...</option>
-                <option value="story">Tiny Story (Once upon a time...)</option>
-                <option value="adventure">Forest Adventure</option>
-                <option value="question">Why is the sky blue?</option>
-                <option value="friendship">Moral Tale of Friendship</option>
+                <option value="">Select prompt preset...</option>
+                <option value="story">Meadow Adventure (Once upon a time...)</option>
+                <option value="car">Beep the Car</option>
+                <option value="autumn">Autumn Science</option>
+                <option value="friendship">The Tower of Blocks</option>
               </select>
             </div>
           </div>
 
           <div class="editor-area">
-            <textarea id="playground-prompt" placeholder="Enter your prompt here to generate completions...">Once upon a time in a sunny meadow,</textarea>
+            <textarea id="playground-prompt" placeholder="Write the beginning of a story to let ForgeLM complete it...">Once upon a time in a sunny meadow, a playful puppy</textarea>
             <div id="playground-stream-output" class="stream-output"></div>
           </div>
 
@@ -93,12 +121,12 @@
             <div class="gen-metrics" id="gen-metrics">
               <span id="metric-tokens">Tokens: 0</span>
               <span class="metric-divider">•</span>
-              <span id="metric-speed">Speed: 0 tok/s</span>
+              <span id="metric-speed">Throughput: 0 tok/s</span>
             </div>
             <div class="action-buttons">
               <button class="btn btn-secondary" onclick="clearPlayground()">Clear</button>
               <button id="playground-gen-btn" class="btn btn-primary" onclick="runPlaygroundGeneration()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                 Generate Completion
               </button>
             </div>
@@ -112,30 +140,47 @@
     <aside class="sidebar-controls">
       <!-- Hardware Telemetry Card -->
       <div class="control-card telemetry-card">
-        <h3>System Telemetry</h3>
+        <div class="card-title-row">
+          <h3>System & Hardware</h3>
+          <span class="status-indicator-badge" id="telemetry-badge">Active</span>
+        </div>
         <div class="telemetry-grid">
           <div class="telemetry-item">
-            <span class="label">Device:</span>
+            <span class="label">Device</span>
             <span class="val" id="telemetry-device">--</span>
           </div>
           <div class="telemetry-item">
-            <span class="label">VRAM:</span>
+            <span class="label">VRAM Usage</span>
             <span class="val" id="telemetry-vram">--</span>
           </div>
           <div class="telemetry-item">
-            <span class="label">Params:</span>
-            <span class="val" id="telemetry-params">12.5M</span>
+            <span class="label">Architecture</span>
+            <span class="val" id="telemetry-params">12.5M Params</span>
           </div>
           <div class="telemetry-item">
-            <span class="label">Layers / Heads:</span>
-            <span class="val" id="telemetry-layers">6 / 6</span>
+            <span class="label">Transformer Layers</span>
+            <span class="val" id="telemetry-layers">6 Layers / 6 Heads</span>
           </div>
         </div>
       </div>
 
-      <!-- Sampling Controls Card -->
+      <!-- Presets & Hyperparameters Card -->
       <div class="control-card">
-        <h3>Sampling Hyperparameters</h3>
+        <div class="card-title-row">
+          <h3>Generation Profile</h3>
+        </div>
+
+        <!-- Sampling Preset Selector -->
+        <div class="preset-selector-group">
+          <label for="sampling-profile">Profile Preset:</label>
+          <select id="sampling-profile" onchange="applySamplingProfile(this.value)">
+            <option value="storyteller" selected>📖 Storyteller (Balanced & Vivid)</option>
+            <option value="precise">🎯 Precise & Coherent (Low Temp)</option>
+            <option value="creative">✨ Creative Explorer (High Diversity)</option>
+          </select>
+        </div>
+
+        <hr class="card-divider">
 
         <!-- Temperature -->
         <div class="slider-group">
@@ -144,7 +189,7 @@
             <span class="slider-value" id="val-temperature">0.70</span>
           </div>
           <input type="range" id="slider-temperature" min="0.0" max="1.5" step="0.05" value="0.70" oninput="updateSliderVal('temperature')">
-          <span class="help-text">Higher values increase diversity; lower values make output more deterministic.</span>
+          <span class="help-text">Controls randomness. Lower is more deterministic; higher is more creative.</span>
         </div>
 
         <!-- Top-k -->
@@ -154,7 +199,7 @@
             <span class="slider-value" id="val-topk">40</span>
           </div>
           <input type="range" id="slider-topk" min="0" max="100" step="5" value="40" oninput="updateSliderVal('topk')">
-          <span class="help-text">Truncates low probability tokens to the top k candidates.</span>
+          <span class="help-text">Filters the next token to only the top-k most probable candidates.</span>
         </div>
 
         <!-- Top-p -->
@@ -174,17 +219,17 @@
             <span class="slider-value" id="val-reppen">1.15</span>
           </div>
           <input type="range" id="slider-reppen" min="1.0" max="2.0" step="0.05" value="1.15" oninput="updateSliderVal('reppen')">
-          <span class="help-text">Discourages repeating recent words and tokens.</span>
+          <span class="help-text">Prevents the model from repeating words or phrases.</span>
         </div>
 
         <!-- Max Tokens -->
         <div class="slider-group">
           <div class="slider-header">
             <label for="slider-maxtokens">Max Tokens</label>
-            <span class="slider-value" id="val-maxtokens">180</span>
+            <span class="slider-value" id="val-maxtokens">160</span>
           </div>
-          <input type="range" id="slider-maxtokens" min="16" max="512" step="16" value="180" oninput="updateSliderVal('maxtokens')">
-          <span class="help-text">Maximum length of newly generated sequence.</span>
+          <input type="range" id="slider-maxtokens" min="16" max="512" step="16" value="160" oninput="updateSliderVal('maxtokens')">
+          <span class="help-text">Maximum length of the generated response.</span>
         </div>
 
         <!-- KV Cache Toggle -->
@@ -193,13 +238,13 @@
             <span>KV Cache Acceleration</span>
             <input type="checkbox" id="toggle-kvcache" checked>
           </label>
-          <span class="help-text">O(N) incremental decoding using cached key-value states.</span>
+          <span class="help-text">O(N) incremental decoding for rapid streaming.</span>
         </div>
 
         <!-- Backend URL Config -->
         <div class="backend-url-group">
-          <label for="input-backend-url">Backend API Endpoint:</label>
-          <input type="text" id="input-backend-url" value="http://localhost:8000">
+          <label for="input-backend-url">Backend Server:</label>
+          <input type="text" id="input-backend-url" value="http://127.0.0.1:8000">
         </div>
       </div>
     </aside>
