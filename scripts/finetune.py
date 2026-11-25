@@ -19,6 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from forgelm.data.instruction import InstructionDataset
+from forgelm.experiments.tracker import ExperimentTracker
 from forgelm.model.config import ModelConfig
 from forgelm.model.transformer import ForgeTransformer
 from forgelm.tokenizer.bpe import BPETokenizer
@@ -112,6 +113,17 @@ def main() -> None:
         default=42,
         help="Random seed for reproducibility",
     )
+    parser.add_argument(
+        "--experiment-name",
+        type=str,
+        default="finetune",
+        help="Name prefix for this fine-tuning experiment run",
+    )
+    parser.add_argument(
+        "--no-track",
+        action="store_true",
+        help="Disable ExperimentTracker metric logging",
+    )
     args = parser.parse_args()
 
     set_seed(args.seed)
@@ -192,11 +204,22 @@ def main() -> None:
 
     # 5. Initialize trainer and run SFT
     logger.info("Starting Supervised Fine-Tuning...")
+    tracker = None
+    if not args.no_track:
+        tracker = ExperimentTracker(
+            experiment_name=args.experiment_name,
+            config={
+                "model": model_config.to_dict() if hasattr(model_config, "to_dict") else model_config.__dict__,
+                "finetune": finetune_config.to_dict() if hasattr(finetune_config, "to_dict") else finetune_config.__dict__,
+            },
+        )
+
     trainer = Trainer(
         model=model,
         config=finetune_config,
         train_dataset=train_dataset,
         val_dataset=val_dataset,
+        tracker=tracker,
     )
 
     trainer.train()

@@ -33,11 +33,13 @@ class Trainer:
         val_dataset: Dataset | None = None,
         optimizer: torch.optim.Optimizer | None = None,
         scheduler: torch.optim.lr_scheduler.LambdaLR | None = None,
+        tracker: Any | None = None,
     ) -> None:
         self.config = config
         self.model = model
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
+        self.tracker = tracker
 
         # Resolve execution device
         if config.device == "auto":
@@ -279,10 +281,25 @@ class Trainer:
             self.step += 1
 
             # Log periodic progress
+            elapsed = time.time() - start_time
+            tok_per_sec = tokens_processed / elapsed if elapsed > 0 else 0
+            current_lr = get_lr(self.optimizer)
+
+            if self.tracker is not None:
+                vram_val = (
+                    torch.cuda.memory_allocated(0) / (1024 * 1024)
+                    if self.device.type == "cuda"
+                    else None
+                )
+                self.tracker.log_step(
+                    step=self.step,
+                    train_loss=step_loss,
+                    lr=current_lr,
+                    tok_per_sec=tok_per_sec,
+                    vram_mb=vram_val,
+                )
+
             if self.step % 10 == 0 or self.step == 1:
-                elapsed = time.time() - start_time
-                tok_per_sec = tokens_processed / elapsed if elapsed > 0 else 0
-                current_lr = get_lr(self.optimizer)
                 logger.info(
                     f"Step {self.step:>6d}/{self.config.max_steps} | "
                     f"Loss: {step_loss:.4f} | "
@@ -299,6 +316,13 @@ class Trainer:
                     f"--- Eval at step {self.step}: Val Loss = {val_loss:.4f}, Perplexity = {val_ppl:.2f} ---"
                 )
 
+                if self.tracker is not None:
+                    self.tracker.log_eval(
+                        step=self.step,
+                        val_loss=val_loss,
+                        perplexity=val_ppl,
+                    )
+
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
                     self.save_checkpoint(
@@ -314,4 +338,7 @@ class Trainer:
                 )
 
         logger.info(f"Training completed in {time.time() - start_time:.2f}s")
+        if self.tracker is not None:
+            self.tracker.finish({"best_val_loss": self.best_val_loss})
+
         self.save_checkpoint(self.checkpoint_dir / "final_model.pt", is_best=False)
