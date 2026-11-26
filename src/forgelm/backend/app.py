@@ -14,6 +14,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from forgelm.backend.schemas import (
     ChatRequest,
     ChatResponse,
+    DiagnosticsResponse,
     GenerateRequest,
     GenerateResponse,
     HealthResponse,
@@ -110,6 +111,17 @@ def get_model_info() -> ModelInfoResponse:
         return model_service.get_model_info()
     except RuntimeError as e:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
+
+
+@app.get("/model/diagnostics", response_model=DiagnosticsResponse, tags=["Monitoring"])
+def get_model_diagnostics() -> DiagnosticsResponse:
+    """Retrieve unified diagnostics across tokenizer, model, and experiments."""
+    try:
+        return model_service.get_diagnostics()
+    except Exception as e:
+        logger.error(f"Diagnostics error: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
 
 
 @app.post("/generate", response_model=GenerateResponse, tags=["Inference"])

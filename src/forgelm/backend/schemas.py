@@ -77,3 +77,19 @@ class ModelInfoResponse(BaseModel):
     n_layers: int
     max_seq_len: int
     num_parameters: int
+
+
+class DiagnosticsResponse(BaseModel):
+    """Response payload for unified system diagnostics."""
+
+    status: str
+    model_name: str = "ForgeLM"
+    num_parameters: int
+    vocab_size: int
+    num_merges: int
+    checkpoint_step: int | None = None
+    device: str
+    gpu_available: bool
+    latest_run: str | None = None
+    latest_run_min_loss: float | None = None
+

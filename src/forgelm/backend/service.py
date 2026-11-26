@@ -13,6 +13,7 @@ from forgelm.backend.schemas import (
     ChatMessage,
     ChatRequest,
     ChatResponse,
+    DiagnosticsResponse,
     GenerateRequest,
     GenerateResponse,
     HealthResponse,
@@ -43,6 +44,7 @@ class ModelService:
         self.generator: TextGenerator | None = None
         self.device: torch.device = torch.device("cpu")
         self.model_config: ModelConfig | None = None
+        self.checkpoint_step: int | None = None
         self.is_loaded: bool = False
 
     def load(
@@ -97,6 +99,7 @@ class ModelService:
             checkpoint = torch.load(ckpt_candidate, map_location=self.device)
             if "model_state_dict" in checkpoint:
                 self.model.load_state_dict(checkpoint["model_state_dict"])
+                self.checkpoint_step = checkpoint.get("step")
             else:
                 self.model.load_state_dict(checkpoint)
         else:
@@ -144,6 +147,50 @@ class ModelService:
             n_layers=self.model_config.n_layers,
             max_seq_len=self.model_config.max_seq_len,
             num_parameters=self.model.get_num_params(),
+        )
+
+    def get_diagnostics(self) -> DiagnosticsResponse:
+        """Return unified cross-subsystem diagnostics."""
+        vocab_size = len(self.tokenizer.vocab) if self.tokenizer else 0
+        num_merges = len(self.tokenizer.merges) if self.tokenizer else 0
+        num_params = self.model.get_num_params() if self.model else 0
+
+        runs_dir = PROJECT_ROOT / "experiments" / "runs"
+        latest_run = None
+        latest_min_loss = None
+        if runs_dir.exists():
+            runs = [d for d in runs_dir.iterdir() if d.is_dir()]
+            if runs:
+                latest_dir = sorted(runs, key=lambda x: x.name)[-1]
+                latest_run = latest_dir.name
+                metrics_file = latest_dir / "metrics.jsonl"
+                if metrics_file.exists():
+                    try:
+                        import json
+
+                        with open(metrics_file, "r", encoding="utf-8") as f:
+                            losses = []
+                            for line in f:
+                                if "train_loss" in line:
+                                    loss_val = json.loads(line).get("train_loss")
+                                    if loss_val is not None:
+                                        losses.append(loss_val)
+                            if losses:
+                                latest_min_loss = round(min(losses), 4)
+                    except Exception:
+                        pass
+
+        return DiagnosticsResponse(
+            status="healthy" if self.is_loaded else "uninitialized",
+            model_name="ForgeLM",
+            num_parameters=num_params,
+            vocab_size=vocab_size,
+            num_merges=num_merges,
+            checkpoint_step=self.checkpoint_step,
+            device=str(self.device),
+            gpu_available=torch.cuda.is_available(),
+            latest_run=latest_run,
+            latest_run_min_loss=latest_min_loss,
         )
 
     def generate(self, req: GenerateRequest) -> GenerateResponse:
