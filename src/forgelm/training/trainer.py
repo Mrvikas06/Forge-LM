@@ -34,12 +34,17 @@ class Trainer:
         optimizer: torch.optim.Optimizer | None = None,
         scheduler: torch.optim.lr_scheduler.LambdaLR | None = None,
         tracker: Any | None = None,
+        early_stopping_patience: int | None = None,
+        min_delta: float = 0.001,
     ) -> None:
         self.config = config
         self.model = model
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
         self.tracker = tracker
+        self.early_stopping_patience = early_stopping_patience
+        self.min_delta = min_delta
+        self.patience_counter = 0
 
         # Resolve execution device
         if config.device == "auto":
@@ -323,12 +328,24 @@ class Trainer:
                         perplexity=val_ppl,
                     )
 
-                if val_loss < self.best_val_loss:
+                if val_loss < self.best_val_loss - self.min_delta:
                     self.best_val_loss = val_loss
+                    self.patience_counter = 0
                     self.save_checkpoint(
                         self.checkpoint_dir / f"checkpoint_step_{self.step}.pt",
                         is_best=True,
                     )
+                else:
+                    self.patience_counter += 1
+                    if (
+                        self.early_stopping_patience is not None
+                        and self.patience_counter >= self.early_stopping_patience
+                    ):
+                        logger.info(
+                            f"Early stopping triggered at step {self.step}: "
+                            f"no validation loss improvement for {self.patience_counter} evaluation cycles."
+                        )
+                        break
 
             # Checkpoint save cycle
             if self.step % self.config.checkpoint_interval == 0:
