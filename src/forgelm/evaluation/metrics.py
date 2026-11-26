@@ -112,3 +112,49 @@ def calculate_bpc(loss: float) -> float:
     if math.isnan(loss) or math.isinf(loss):
         return float("inf")
     return loss / math.log(2.0)
+
+
+def calculate_distinct_ngrams(tokens: Sequence[int | str], n: int = 2) -> float:
+    """Calculate the ratio of distinct n-grams to total n-grams (Distinct-N metric).
+
+    Args:
+        tokens: Sequence of token IDs or words.
+        n: Size of n-grams (default: 2 for bigrams).
+
+    Returns:
+        Float between 0.0 and 1.0 (higher = richer vocabulary diversity).
+    """
+    if len(tokens) < n:
+        return 1.0 if len(tokens) > 0 else 0.0
+
+    ngrams = [tuple(tokens[i : i + n]) for i in range(len(tokens) - n + 1)]
+    if not ngrams:
+        return 0.0
+
+    return len(set(ngrams)) / len(ngrams)
+
+
+def calculate_repetition_rate(tokens: Sequence[int | str], window_size: int = 16) -> float:
+    """Calculate the fraction of tokens that repeat within a trailing context window.
+
+    Args:
+        tokens: Sequence of token IDs or words.
+        window_size: Lookback window to test for token recurrence.
+
+    Returns:
+        Float between 0.0 and 1.0 (lower = less repetitive).
+    """
+    if len(tokens) <= 1:
+        return 0.0
+
+    repeated_count = 0
+    total_evaluated = 0
+
+    for i in range(1, len(tokens)):
+        window = set(tokens[max(0, i - window_size) : i])
+        if tokens[i] in window:
+            repeated_count += 1
+        total_evaluated += 1
+
+    return repeated_count / total_evaluated if total_evaluated > 0 else 0.0
+
