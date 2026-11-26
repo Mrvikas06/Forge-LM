@@ -334,3 +334,29 @@ class BPETokenizer:
             tokenizer.vocab[new_id] = tokenizer.vocab[id1] + tokenizer.vocab[id2]
 
         return tokenizer
+
+    def get_vocab_stats(self) -> dict[str, int]:
+        """Return structural statistics about the loaded vocabulary."""
+        return {
+            "vocab_size": self.vocab_size,
+            "actual_vocab_size": len(self.vocab),
+            "num_merges": len(self.merges),
+            "num_special_tokens": len(self.special_tokens),
+            "num_byte_tokens": NUM_BYTE_TOKENS,
+        }
+
+    def compute_compression_ratio(self, text: str) -> float:
+        """Compute byte-to-token compression ratio on an input string.
+
+        Args:
+            text: Input string.
+
+        Returns:
+            Compression ratio (>1.0 indicates compression).
+        """
+        raw_bytes = len(text.encode("utf-8"))
+        tokens = len(self.encode(text, add_bos=False, add_eos=False))
+        if tokens == 0:
+            return 1.0
+        return round(raw_bytes / tokens, 3)
+
