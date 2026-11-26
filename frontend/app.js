@@ -190,6 +190,27 @@ async function fetchModelInfo() {
   }
 }
 
+async function fetchDiagnostics() {
+  const base = getBackendBaseUrl();
+  try {
+    const res = await fetch(`${base}/model/diagnostics`);
+    if (res.ok) {
+      const data = await res.json();
+      const elVocab = document.getElementById("diag-vocab");
+      const elStep = document.getElementById("diag-step");
+      const elRun = document.getElementById("diag-run");
+      if (elVocab) elVocab.textContent = `${data.vocab_size.toLocaleString()} BPE`;
+      if (elStep) elStep.textContent = data.checkpoint_step ? `Step ${data.checkpoint_step}` : "Trained";
+      if (elRun) {
+        const runShort = data.latest_run ? data.latest_run.replace(/^(?:finetune|pretrain)_/, "") : "Ready";
+        elRun.textContent = data.latest_run_min_loss ? `Loss ${data.latest_run_min_loss}` : runShort;
+      }
+    }
+  } catch (err) {
+    // Ignore if offline
+  }
+}
+
 // Chat Mode Handler
 function handleChatKeyDown(event) {
   if (event.key === "Enter" && !event.shiftKey) {
@@ -436,4 +457,6 @@ async function runPlaygroundGeneration() {
 // Telemetry Poller Loop
 fetchTelemetry();
 fetchModelInfo();
+fetchDiagnostics();
 setInterval(fetchTelemetry, 3000);
+setInterval(fetchDiagnostics, 5000);
