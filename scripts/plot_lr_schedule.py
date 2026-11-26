@@ -14,7 +14,7 @@ import sys
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from forgelm.training.optim import get_cosine_schedule_with_warmup
+from forgelm.training.optim import calculate_cosine_lr
 
 
 def main() -> None:
@@ -22,18 +22,18 @@ def main() -> None:
     parser.add_argument("--max-steps", type=int, default=1000, help="Total training steps")
     parser.add_argument("--warmup-steps", type=int, default=100, help="Linear warmup steps")
     parser.add_argument("--peak-lr", type=float, default=3e-4, help="Peak learning rate")
-    parser.add_argument("--min-lr", type=float, default=3e-5, help="Minimum learning rate")
+    parser.add_argument("--min-lr-ratio", type=float, default=0.1, help="Min LR ratio")
     parser.add_argument("--export-plot", type=str, default=None, help="Optional image path to save plot")
     args = parser.parse_args()
 
     steps = list(range(0, args.max_steps + 1))
     lrs = [
-        get_cosine_schedule_with_warmup(
-            current_step=s,
+        calculate_cosine_lr(
+            step=s,
             total_steps=args.max_steps,
             warmup_steps=args.warmup_steps,
             peak_lr=args.peak_lr,
-            min_lr=args.min_lr,
+            min_lr_ratio=args.min_lr_ratio,
         )
         for s in steps
     ]
@@ -41,10 +41,11 @@ def main() -> None:
     print("=" * 60)
     print("FORGELM LEARNING RATE SCHEDULE PROFILE")
     print("=" * 60)
+    min_lr = args.peak_lr * args.min_lr_ratio
     print(f"Total Steps       : {args.max_steps:,}")
     print(f"Warmup Steps      : {args.warmup_steps:,} ({(args.warmup_steps/args.max_steps)*100:.1f}%)")
     print(f"Peak Learning Rate: {args.peak_lr:.2e}")
-    print(f"Min Learning Rate : {args.min_lr:.2e}")
+    print(f"Min Learning Rate : {min_lr:.2e} ({args.min_lr_ratio * 100:.0f}%)")
     print("-" * 60)
     print(f"{'Step':<10} | {'Phase':<15} | {'Learning Rate':<15} | {'% of Peak':<10}")
     print("-" * 60)

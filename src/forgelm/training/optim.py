@@ -66,6 +66,26 @@ def configure_optimizers(
     return optimizer
 
 
+def calculate_cosine_lr(
+    step: int,
+    total_steps: int,
+    warmup_steps: int,
+    peak_lr: float,
+    min_lr_ratio: float = 0.1,
+) -> float:
+    """Calculate the learning rate at a given step using cosine decay with warmup."""
+    if step < warmup_steps:
+        factor = float(step + 1) / float(max(1, warmup_steps))
+    elif step > total_steps:
+        factor = min_lr_ratio
+    else:
+        progress = float(step - warmup_steps) / float(max(1, total_steps - warmup_steps))
+        cosine_decay = 0.5 * (1.0 + math.cos(math.pi * progress))
+        factor = min_lr_ratio + (1.0 - min_lr_ratio) * cosine_decay
+
+    return peak_lr * factor
+
+
 def get_cosine_schedule_with_warmup(
     optimizer: torch.optim.Optimizer,
     warmup_steps: int,
