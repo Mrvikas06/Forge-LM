@@ -124,6 +124,67 @@ def plot_loss_curves(
     return out_file
 
 
+def plot_multi_run_comparison(
+    run_paths: list[str | Path],
+    output_path: str | Path,
+    labels: list[str] | None = None,
+    window_size: int = 5,
+) -> Path:
+    """Plot overlaid smoothed loss curves for multiple experiment runs.
+
+    Args:
+        run_paths: List of run directory paths or metrics.jsonl file paths.
+        output_path: Destination path for saved image.
+        labels: Optional custom legend labels.
+        window_size: Moving average smoothing window.
+
+    Returns:
+        Path to the saved comparison figure.
+    """
+    out_file = Path(output_path)
+    palette = ["#4f46e5", "#06b6d4", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6"]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    plt.style.use("seaborn-v0_8-whitegrid" if "seaborn-v0_8-whitegrid" in plt.style.available else "default")
+
+    for i, r_path in enumerate(run_paths):
+        p = Path(r_path)
+        m_file = p / "metrics.jsonl" if p.is_dir() else p
+        if not m_file.exists():
+            continue
+
+        step_records, _ = load_metrics_jsonl(m_file)
+        if not step_records:
+            continue
+
+        steps = [r["step"] for r in step_records]
+        losses = [r["train_loss"] for r in step_records]
+
+        # Moving average
+        smoothed = []
+        for j in range(len(losses)):
+            start = max(0, j - window_size + 1)
+            smoothed.append(sum(losses[start : j + 1]) / (j - start + 1))
+
+        label = labels[i] if labels and i < len(labels) else p.name
+        color = palette[i % len(palette)]
+        ax.plot(steps, smoothed, color=color, linewidth=2.2, label=label)
+
+    ax.set_xlabel("Training Steps", fontsize=11, fontweight="bold")
+    ax.set_ylabel("Smoothed Cross-Entropy Loss", fontsize=11, fontweight="bold")
+    ax.set_title("ForgeLM Multi-Run Convergence Comparison", fontsize=13, fontweight="bold")
+    ax.grid(True, linestyle="--", alpha=0.6)
+    ax.legend(loc="upper right", frameon=True)
+
+    plt.tight_layout()
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(out_file, dpi=200)
+    plt.close(fig)
+
+    return out_file
+
+
+
 def plot_benchmark_bars(
     benchmark_results: list[dict[str, Any]],
     output_path: str | Path,
@@ -167,3 +228,64 @@ def plot_benchmark_bars(
     plt.close(fig)
 
     return out_file
+
+
+def plot_multi_run_comparison(
+    run_paths: list[str | Path],
+    output_path: str | Path,
+    labels: list[str] | None = None,
+    window_size: int = 5,
+) -> Path:
+    """Plot overlaid smoothed loss curves for multiple experiment runs.
+
+    Args:
+        run_paths: List of run directory paths or metrics.jsonl file paths.
+        output_path: Destination path for saved image.
+        labels: Optional custom legend labels.
+        window_size: Moving average smoothing window.
+
+    Returns:
+        Path to the saved comparison figure.
+    """
+    out_file = Path(output_path)
+    palette = ["#4f46e5", "#06b6d4", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6"]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    plt.style.use("seaborn-v0_8-whitegrid" if "seaborn-v0_8-whitegrid" in plt.style.available else "default")
+
+    for i, r_path in enumerate(run_paths):
+        p = Path(r_path)
+        m_file = p / "metrics.jsonl" if p.is_dir() else p
+        if not m_file.exists():
+            continue
+
+        step_records, _ = load_metrics_jsonl(m_file)
+        if not step_records:
+            continue
+
+        steps = [r["step"] for r in step_records]
+        losses = [r["train_loss"] for r in step_records]
+
+        # Moving average
+        smoothed = []
+        for j in range(len(losses)):
+            start = max(0, j - window_size + 1)
+            smoothed.append(sum(losses[start : j + 1]) / (j - start + 1))
+
+        label = labels[i] if labels and i < len(labels) else p.name
+        color = palette[i % len(palette)]
+        ax.plot(steps, smoothed, color=color, linewidth=2.2, label=label)
+
+    ax.set_xlabel("Training Steps", fontsize=11, fontweight="bold")
+    ax.set_ylabel("Smoothed Cross-Entropy Loss", fontsize=11, fontweight="bold")
+    ax.set_title("ForgeLM Multi-Run Convergence Comparison", fontsize=13, fontweight="bold")
+    ax.grid(True, linestyle="--", alpha=0.6)
+    ax.legend(loc="upper right", frameon=True)
+
+    plt.tight_layout()
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(out_file, dpi=200)
+    plt.close(fig)
+
+    return out_file
+
